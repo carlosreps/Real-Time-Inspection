@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outpost Electrical Inspections</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: "Times New Roman", Times, serif;
+            overflow: hidden;
+            background-color: #001133;
+            color: white;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        header {
+            background-color: #00235e;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #1a3c7a;
+        }
+        
+        h1 {
+            margin: 0;
+        }
+        
+        .version-info {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #ffcc00;
+        }
+        
+        .breadcrumb {
+            padding: 10px 15px;
+            background-color: #0a2a5e;
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb-item {
+            margin-right: 5px;
+            cursor: pointer;
+            color: #6f96d8;
+        }
+        
+        .breadcrumb-item.active {
+            color: white;
+            font-weight: bold;
+        }
+        
+        .breadcrumb-separator {
+            margin: 0 5px;
+            color: #6f96d8;
+        }
+        
+        .main-content {
+            flex: 1;
+            overflow: auto;
+            padding: 15px;
+        }
+        
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .item-card {
+            background-color: #0a2a5e;
+            border: 1px solid #1a3c7a;
+            border-radius: 5px;
+            padding: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        
+        .item-card:hover {
+            background-color: #1a3c7a;
+            transform: translateY(-2px);
+        }
+        
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .item-details {
+            font-size: 0.9em;
+            color: #6f96d8;
+        }
+        
+        .has-photos {
+            position: relative;
+        }
+        
+        .has-photos::after {
+            content: "📷";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        
+        .view {
+            display: none;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #1a3c7a;
+        }
+        
+        .btn {
+            background-color: #1a3c7a;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: "Times New Roman", Times, serif;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #2a4c8a;
+        }
+        
+        .btn:disabled {
+            background-color: #0a1a4a;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .btn-primary {
+            background-color: #00a864;
+        }
+        
+        .btn-primary:hover {
+            background-color: #00c864;
+        }
+        
+        .toolbar {
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .equipment-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .equipment-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .equipment-section {
+            background-color: rgba(10, 42, 94, 0.5);
+            border: 1px solid #1a3c7a;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: #0a2a5e;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #1a3c7a;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #1a3c7a;
+        }
+        
+        .close-modal {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: white;
+        }
+        
+        .equipment-info {
+            margin-bottom: 20px;
+        }
+        
+        .photo-section {
+            margin-bottom: 20px;
+        }
+        
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .photo-item {
+            background-color: #143061;
+            border: 1px solid #1a3c7a;
+            border-radius: 4px;
+            overflow: hidden;
+            height: 120px;
+            position: relative;
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .placeholder-photo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #6f96d8;
+            font-size: 48px;
+            cursor: pointer;
+        }
+        
+        .photo-preview {
+            position: relative;
+        }
+        
+        .delete-photo {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .photo-actions {
+            margin-bottom: 20px;
+        }
+        
+        .notes-section textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            background-color: #143061;
+            color: white;
+            border: 1px solid #1a3c7a;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-family: "Times New Roman", Times, serif;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100%;
+            background-color: #001133;
+        }
+        
+        .auth-form {
+            background-color: #0a2a5e;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background-color: #143061;
+            color: white;
+            border: 1px solid #1a3c7a;
+            border-radius: 4px;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #00a864;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .auth-btn:hover {
+            background-color: #00c864;
+        }
+        
+        .auth-toggle {
+            margin-top: 20px;
+            color: #6f96d8;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .notification.success {
+            background-color: #00a864;
+        }
+        
+        .notification.error {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Container -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-form">
+            <h2 style="text-align: center; margin-bottom: 30px;">OUTPOST ELECTRICAL INSPECTIONS</h2>
+            
+            <div id="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password">
+                </div>
+                <button id="login-btn" class="auth-btn">Login</button>
+                <p class="auth-toggle" id="to-signup">Don't have an account? Sign Up</p>
+            </div>
+            
+            <div id="signup-form" style="display: none;">
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Enter your password">
+                </div>
+                <button id="signup-btn" class="auth-btn">Sign Up</button>
+                <p class="auth-toggle" id="to-login">Already have an account? Login</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="container" style="display: none;">
+        <header>
+            <h1>OUTPOST ELECTRICAL INSPECTIONS</h1>
+            <p class="version-info">Live Version <span id="user-email"></span></p>
+        </header>
+        
+        <div class="breadcrumb">
+            <span class="breadcrumb-item active" id="home-crumb">Home</span>
+            <span class="breadcrumb-separator" id="circuit-separator" style="display: none;">›</span>
+            <span class="breadcrumb-item" id="circuit-crumb" style="display: none;"></span>
+            <span class="breadcrumb-separator" id="block-separator" style="display: none;">›</span>
+            <span class="breadcrumb-item" id="block-crumb" style="display: none;"></span>
+        </div>
+        
+        <div class="main-content">
+            <!-- Circuits View -->
+            <div class="view active" id="circuits-view">
+                <div class="toolbar">
+                    <div>
+                        <button class="btn" id="filter-btn">Filter</button>
+                        <button class="btn" id="search-btn">Search</button>
+                    </div>
+                    <div>
+                        <button class="btn" id="logout-btn">Logout</button>
+                    </div>
+                </div>
+                
+                <h2>Circuits</h2>
+                <ul class="item-list" id="circuits-list">
+                    <!-- Circuits will be populated by JavaScript -->
+                    <div style="text-align: center; grid-column: 1/-1; padding: 20px;">
+                        <div class="loading-spinner"></div>
+                        <p>Loading circuits...</p>
+                    </div>
+                </ul>
+            </div>
+            
+            <!-- Blocks View -->
+            <div class="view" id="blocks-view">
+                <div class="toolbar">
+                    <div>
+                        <button class="btn" id="filter-blocks-btn">Filter</button>
+                        <button class="btn" id="search-blocks-btn">Search</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" id="take-photo-blocks-btn">Take Photo</button>
+                    </div>
+                </div>
+                
+                <h2>Blocks in <span id="circuit-title"></span></h2>
+                <ul class="item-list" id="blocks-list">
+                    <!-- Blocks will be populated by JavaScript -->
+                </ul>
+            </div>
+            
+            <!-- Equipment View -->
+            <div class="view" id="equipment-view">
+                <div class="toolbar">
+                    <div>
+                        <button class="btn" id="filter-equipment-btn">Filter</button>
+                        <button class="btn" id="search-equipment-btn">Search</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" id="take-photo-equipment-btn">Take Photo</button>
+                    </div>
+                </div>
+                
+                <h2>Equipment in Block <span id="block-title"></span></h2>
+                
+                <div class="equipment-grid">
+                    <!-- Inverter Section -->
+                    <div class="equipment-section">
+                        <h3 class="section-title">Inverter</h3>
+                        <div id="inverter-container">
+                            <!-- Inverter will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Splice Boxes Section -->
+                    <div class="equipment-section">
+                        <h3 class="section-title">Splice Boxes</h3>
+                        <ul class="item-list" id="splice-boxes-list">
+                            <!-- Splice boxes will be populated by JavaScript -->
+                        </ul>
+                    </div>
+                    
+                    <!-- Combiner Boxes Section -->
+                    <div class="equipment-section" style="grid-column: span 2;">
+                        <h3 class="section-title">Combiner Boxes</h3>
+                        <ul class="item-list" id="combiner-boxes-list">
+                            <!-- Combiner boxes will be populated by JavaScript -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Equipment Detail Modal -->
+            <div id="equipment-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modal-title">Equipment Details</h3>
+                        <span class="close-modal">&times;</span>
+                    </div>
+                    <div id="modal-body">
+                        <div class="equipment-info">
+                            <p><strong>ID:</strong> <span id="equipment-id"></span></p>
+                            <p><strong>Type:</strong> <span id="equipment-type"></span></p>
+                            <p><strong>Status:</strong> <span id="equipment-status"></span></p>
+                        </div>
+                        
+                        <div class="photo-section">
+                            <h4>Photos</h4>
+                            <div id="photos-container" class="photos-grid">
+                                <!-- Photos will be populated here -->
+                                <div class="photo-item">
+                                    <div class="placeholder-photo" id="add-photo-placeholder">
+                                        <span>+</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notes-section">
+                            <h4>Notes</h4>
+                            <div id="notes-container">
+                                <textarea id="notes-input" placeholder="Add inspection notes here..."></textarea>
+                            </div>
+                            <button class="btn" id="save-notes-btn">Save Notes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <!-- Firebase App (required) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script>
+    
+    <script>
+        // REPLACE WITH YOUR FIREBASE CONFIG
+        const firebaseConfig = {
+  apiKey: "AIzaSyDmg1cpteLSuS1cJzu0wECDs_iAntkbK3c",
+  authDomain: "real-time-inspection.firebaseapp.com",
+  projectId: "real-time-inspection",
+  storageBucket: "real-time-inspection.firebasestorage.app",
+  messagingSenderId: "911467950213",
+  appId: "1:911467950213:web:eec0d32f10255c131e39ec",
+  measurementId: "G-6JGT48VTT1"
+};
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Get references to Firebase services
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        
+        // DOM elements - Auth
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const toSignup = document.getElementById('to-signup');
+        const toLogin = document.getElementById('to-login');
+        const loginBtn = document.getElementById('login-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userEmail = document.getElementById('user-email');
+        
+        // DOM elements - App
+        const circuitsView = document.getElementById('circuits-view');
+        const blocksView = document.getElementById('blocks-view');
+        const equipmentView = document.getElementById('equipment-view');
+        
+        const circuitsList = document.getElementById('circuits-list');
+        const blocksList = document.getElementById('blocks-list');
+        const inverterContainer = document.getElementById('inverter-container');
+        const spliceBoxesList = document.getElementById('splice-boxes-list');
+        const combinerBoxesList = document.getElementById('combiner-boxes-list');
+        
+        const homeCrumb = document.getElementById('home-crumb');
+        const circuitCrumb = document.getElementById('circuit-crumb');
+        const blockCrumb = document.getElementById('block-crumb');
+        const circuitSeparator = document.getElementById('circuit-separator');
+        const blockSeparator = document.getElementById('block-separator');
+        
+        const circuitTitle = document.getElementById('circuit-title');
+        const blockTitle = document.getElementById('block-title');
+        
+        const equipmentModal = document.getElementById('equipment-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const equipmentId = document.getElementById('equipment-id');
+        const equipmentType = document.getElementById('equipment-type');
+        const equipmentStatus = document.getElementById('equipment-status');
+        const photosContainer = document.getElementById('photos-container');
+        const notesInput = document.getElementById('notes-input');
+        const saveNotesBtn = document.getElementById('save-notes-btn');
+        const notification = document.getElementById('notification');
+        
+        // Current selection state
+        let currentCircuitId = null;
+        let currentBlockId = null;
+        let currentEquipment = null;
+        let currentUser = null;
+        
+        // Auth event listeners
+        toSignup.addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+        });
+        
+        toLogin.addEventListener('click', () => {
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+        
+        loginBtn.addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showNotification('Please enter both email and password', 'error');
+                return;
+            }
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(error => {
+                    showNotification(error.message, 'error');
+                });
+        });
+        
+        signupBtn.addEventListener('click', () => {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            if (!email || !password) {
+                showNotification('Please enter both email and password', 'error');
+                return;
+            }
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .catch(error => {
+                    showNotification(error.message, 'error');
+                });
+        });
+        
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut();
+        });
+        
+        // Auth state change
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                userEmail.textContent = user.email;
+                authContainer.style.display = 'none';
+                appContainer.style.display = 'flex';
+                
+                // Initialize app data
+                initApp();
+            } else {
+                // User is signed out
+                currentUser = null;
+                authContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
+                
+                // Clear form fields
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('signup-email').value = '';
+                document.getElementById('signup-password').value = '';
+                
+                // Reset UI state
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+            }
+        });
+        
+        // Initialize app - populate circuits list
+        const initApp = async () => {
+            try {
+                // Initialize Firestore with sample data if it doesn't exist
+                await checkAndInitializeData();
+                
+                // Populate circuits list
+                populateCircuitsList();
+                
+                // Add event listeners for navigation
+                homeCrumb.addEventListener('click', () => {
+                    showView('circuits');
+                    updateBreadcrumbs();
+                });
+                
+                circuitCrumb.addEventListener('click', () => {
+                    showView('blocks');
+                    updateBreadcrumbs(currentCircuitId);
+                });
+                
+                // Setup modal close button
+                const closeModal = document.querySelector('.close-modal');
+                closeModal.addEventListener('click', () => {
+                    equipmentModal.style.display = 'none';
+                });
+                
+                // Setup click outside modal to close
+                window.addEventListener('click', (event) => {
+                    if (event.target === equipmentModal) {
+                        equipmentModal.style.display = 'none';
+                    }
+                });
+                
+                // Setup add photo placeholder click
+                document.getElementById('add-photo-placeholder').addEventListener('click', openFileSelector);
+                
+                // Setup save notes button
+                saveNotesBtn.addEventListener('click', saveEquipmentNotes);
+            } catch (error) {
+                console.error("Error initializing app:", error);
+                showNotification("Error loading data. Please try again.", "error");
+            }
+        };
+        
+        // Check if data exists and initialize sample data if needed
+        const checkAndInitializeData = async () => {
+            const circuitsRef = db.collection('circuits');
+            const snapshot = await circuitsRef.limit(1).get();
+            
+            if (snapshot.empty) {
+                // No data exists, initialize with sample data
+                await initializeFirestoreData();
+            }
+        };
+        
+        // Initialize Firestore with sample data
+        const initializeFirestoreData = async () => {
+            // Sample circuits data
+            const circuits = [
+                {id: "1", name: "Circuit 1", blocks: ["0101", "0102", "0103", "0104"]},
+                {id: "2", name: "Circuit 2", blocks: ["0201", "0202", "0203", "0204"]},
+                {id: "3", name: "Circuit 3", blocks: ["0301", "0302", "0303", "0304"]}
+            ];
+            
+            // Add circuits to Firestore
+            const batch = db.batch();
+            
+            for (const circuit of circuits) {
+                const circuitRef = db.collection('circuits').doc(circuit.id);
+                batch.set(circuitRef, {
+                    name: circuit.name,
+                    blocks: circuit.blocks
+                });
+                
+                // Add blocks and equipment
+                for (const blockId of circuit.blocks) {
+                    // Create block reference (not actually stored as document)
+                    
+                    // Add inverter
+                    const inverterId = `PCS-${blockId}`;
+                    const inverterRef = db.collection('equipment').doc(inverterId);
+                    batch.set(inverterRef, {
+                        id: inverterId,
+                        blockId: blockId,
+                        circuitId: circuit.id,
+                        type: "Inverter",
+                        status: "No Inspection",
+                        notes: "",
+                        photos: []
+                    });
+                    
+                    // Add splice boxes
+                    for (let i = 1; i <= 2; i++) {
+                        const boxNum = i.toString().padStart(2, '0');
+                        const spliceBoxId = `SB-${blockId}-${boxNum}`;
+                        const spliceBoxRef = db.collection('equipment').doc(spliceBoxId);
+                        batch.set(spliceBoxRef, {
+                            id: spliceBoxId,
+                            blockId: blockId,
+                            circuitId: circuit.id,
+                            type: "Splice Box",
+                            status: "No Inspection",
+                            notes: "",
+                            photos: []
+                        });
+                    }
+                    
+                    // Add combiner boxes
+                    for (let i = 1; i <= 6; i++) {
+                        const boxNum = i.toString().padStart(2, '0');
+                        const combinerBoxId = `CMB-${blockId}-${boxNum}`;
+                        const combinerBoxRef = db.collection('equipment').doc(combinerBoxId);
+                        batch.set(combinerBoxRef, {
+                            id: combinerBoxId,
+                            blockId: blockId,
+                            circuitId: circuit.id,
+                            type: "Combiner Box",
+                            status: "No Inspection",
+                            notes: "",
+                            photos: []
+                        });
+                    }
+                }
+            }
+            
+            await batch.commit();
+            console.log("Sample data initialized");
+        };
+        
+        // Show a specific view
+        const showView = (viewName) => {
+            // Hide all views
+            circuitsView.classList.remove('active');
+            blocksView.classList.remove('active');
+            equipmentView.classList.remove('active');
+            
+            // Show the requested view
+            if (viewName === 'circuits') {
+                circuitsView.classList.add('active');
+                currentCircuitId = null;
+                currentBlockId = null;
+            } else if (viewName === 'blocks' && currentCircuitId) {
+                blocksView.classList.add('active');
+                currentBlockId = null;
+            } else if (viewName === 'equipment' && currentBlockId) {
+                equipmentView.classList.add('active');
+            }
+        };
+        
+        // Update breadcrumb navigation
+        const updateBreadcrumbs = (circuitId = null, blockId = null) => {
+                        homeCrumb.classList.remove('active');
+            circuitCrumb.classList.remove('active');
+            blockCrumb.classList.remove('active');
+            
+            if (!circuitId) {
+                // Only home is active
+                homeCrumb.classList.add('active');
+                circuitCrumb.style.display = 'none';
+                blockCrumb.style.display = 'none';
+                circuitSeparator.style.display = 'none';
+                blockSeparator.style.display = 'none';
+            } else if (!blockId) {
+                // Circuit is active
+                circuitCrumb.classList.add('active');
+                circuitCrumb.style.display = 'inline';
+                circuitSeparator.style.display = 'inline';
+                blockCrumb.style.display = 'none';
+                blockSeparator.style.display = 'none';
+            } else {
+                // Block is active
+                blockCrumb.classList.add('active');
+                circuitCrumb.style.display = 'inline';
+                circuitSeparator.style.display = 'inline';
+                blockCrumb.style.display = 'inline';
+                blockSeparator.style.display = 'inline';
+            }
+        };
+        
+        // Populate circuits list
+        const populateCircuitsList = async () => {
+            try {
+                circuitsList.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 20px;"><div class="loading-spinner"></div><p>Loading circuits...</p></div>';
+                
+                const snapshot = await db.collection('circuits').get();
+                
+                circuitsList.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    circuitsList.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 20px;"><p>No circuits found.</p></div>';
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const circuit = doc.data();
+                    const circuitCard = document.createElement('li');
+                    circuitCard.className = 'item-card';
+                    
+                    circuitCard.innerHTML = `
+                        <div class="item-name">${circuit.name}</div>
+                        <div class="item-details">${circuit.blocks.length} blocks</div>
+                    `;
+                    
+                    // Add click event
+                    circuitCard.addEventListener('click', () => {
+                        currentCircuitId = doc.id;
+                        circuitCrumb.textContent = circuit.name;
+                        circuitTitle.textContent = circuit.name;
+                        populateBlocksList(doc.id, circuit.blocks);
+                        showView('blocks');
+                        updateBreadcrumbs(doc.id);
+                    });
+                    
+                    circuitsList.appendChild(circuitCard);
+                });
+            } catch (error) {
+                console.error("Error loading circuits:", error);
+                circuitsList.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 20px;"><p>Error loading circuits. Please try again.</p></div>';
+                showNotification("Error loading circuits", "error");
+            }
+        };
+        
+        // Populate blocks list for a specific circuit
+        const populateBlocksList = (circuitId, blocks) => {
+            blocksList.innerHTML = '';
+            
+            if (!blocks || blocks.length === 0) {
+                blocksList.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 20px;"><p>No blocks found in this circuit.</p></div>';
+                return;
+            }
+            
+            blocks.forEach(blockId => {
+                const blockCard = document.createElement('li');
+                blockCard.className = 'item-card';
+                
+                blockCard.innerHTML = `
+                    <div class="item-name">Block PCS${blockId}</div>
+                    <div class="item-details">Block ${blockId}</div>
+                `;
+                
+                // Add click event
+                blockCard.addEventListener('click', () => {
+                    currentBlockId = blockId;
+                    blockCrumb.textContent = `Block PCS${blockId}`;
+                    blockTitle.textContent = `PCS${blockId}`;
+                    populateEquipmentView(circuitId, blockId);
+                    showView('equipment');
+                    updateBreadcrumbs(circuitId, blockId);
+                });
+                
+                blocksList.appendChild(blockCard);
+            });
+        };
+        
+        // Populate equipment view for a specific block
+        const populateEquipmentView = async (circuitId, blockId) => {
+            try {
+                // Clear previous content
+                inverterContainer.innerHTML = '<div class="loading-spinner"></div>';
+                spliceBoxesList.innerHTML = '<div class="loading-spinner"></div>';
+                combinerBoxesList.innerHTML = '<div class="loading-spinner"></div>';
+                
+                // Get equipment data from Firestore
+                const snapshot = await db.collection('equipment')
+                    .where('blockId', '==', blockId)
+                    .where('circuitId', '==', circuitId)
+                    .get();
+                
+                // Clear loading spinners
+                inverterContainer.innerHTML = '';
+                spliceBoxesList.innerHTML = '';
+                combinerBoxesList.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    inverterContainer.innerHTML = '<p>No equipment found for this block.</p>';
+                    return;
+                }
+                
+                const equipment = {
+                    inverter: null,
+                    spliceBoxes: [],
+                    combinerBoxes: []
+                };
+                
+                // Organize equipment by type
+                snapshot.forEach(doc => {
+                    const item = doc.data();
+                    
+                    if (item.type === "Inverter") {
+                        equipment.inverter = item;
+                    } else if (item.type === "Splice Box") {
+                        equipment.spliceBoxes.push(item);
+                    } else if (item.type === "Combiner Box") {
+                        equipment.combinerBoxes.push(item);
+                    }
+                });
+                
+                // Populate inverter
+                if (equipment.inverter) {
+                    const inverterCard = document.createElement('div');
+                    inverterCard.className = 'item-card';
+                    
+                    // Add photo indicator if it has photos
+                    if (equipment.inverter.photos && equipment.inverter.photos.length > 0) {
+                        inverterCard.classList.add('has-photos');
+                    }
+                    
+                    inverterCard.innerHTML = `
+                        <div class="item-name">${equipment.inverter.id}</div>
+                        <div class="item-details">Status: ${equipment.inverter.status}</div>
+                    `;
+                    
+                    // Add click event for inverter details
+                    inverterCard.addEventListener('click', () => {
+                        showEquipmentDetails(equipment.inverter);
+                    });
+                    
+                    inverterContainer.appendChild(inverterCard);
+                } else {
+                    inverterContainer.innerHTML = '<p>No inverter found for this block.</p>';
+                }
+                
+                // Populate splice boxes
+                if (equipment.spliceBoxes.length === 0) {
+                    spliceBoxesList.innerHTML = '<p>No splice boxes found for this block.</p>';
+                } else {
+                    equipment.spliceBoxes.forEach(spliceBox => {
+                        const spliceBoxCard = document.createElement('li');
+                        spliceBoxCard.className = 'item-card';
+                        
+                        // Add photo indicator if it has photos
+                        if (spliceBox.photos && spliceBox.photos.length > 0) {
+                            spliceBoxCard.classList.add('has-photos');
+                        }
+                        
+                        spliceBoxCard.innerHTML = `
+                            <div class="item-name">${spliceBox.id}</div>
+                            <div class="item-details">Status: ${spliceBox.status}</div>
+                        `;
+                        
+                        // Add click event for splice box details
+                        spliceBoxCard.addEventListener('click', () => {
+                            showEquipmentDetails(spliceBox);
+                        });
+                        
+                        spliceBoxesList.appendChild(spliceBoxCard);
+                    });
+                }
+                
+                // Populate combiner boxes
+                if (equipment.combinerBoxes.length === 0) {
+                    combinerBoxesList.innerHTML = '<p>No combiner boxes found for this block.</p>';
+                } else {
+                    equipment.combinerBoxes.forEach(combinerBox => {
+                        const combinerBoxCard = document.createElement('li');
+                        combinerBoxCard.className = 'item-card';
+                        
+                        // Add photo indicator if it has photos
+                        if (combinerBox.photos && combinerBox.photos.length > 0) {
+                            combinerBoxCard.classList.add('has-photos');
+                        }
+                        
+                        combinerBoxCard.innerHTML = `
+                            <div class="item-name">${combinerBox.id}</div>
+                            <div class="item-details">Status: ${combinerBox.status}</div>
+                        `;
+                        
+                        // Add click event for combiner box details
+                        combinerBoxCard.addEventListener('click', () => {
+                            showEquipmentDetails(combinerBox);
+                        });
+                        
+                        combinerBoxesList.appendChild(combinerBoxCard);
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading equipment:", error);
+                inverterContainer.innerHTML = '<p>Error loading equipment. Please try again.</p>';
+                spliceBoxesList.innerHTML = '';
+                combinerBoxesList.innerHTML = '';
+                showNotification("Error loading equipment", "error");
+            }
+        };
+        
+        // Show equipment details in modal
+        const showEquipmentDetails = async (equipment) => {
+            try {
+                // Store current equipment
+                currentEquipment = equipment;
+                
+                // Set equipment details
+                modalTitle.textContent = `${equipment.id} Details`;
+                equipmentId.textContent = equipment.id;
+                equipmentType.textContent = equipment.type;
+                equipmentStatus.textContent = equipment.status;
+                notesInput.value = equipment.notes || '';
+                
+                // Clear photos container except for the placeholder
+                const photosNodes = photosContainer.querySelectorAll('.photo-preview');
+                photosNodes.forEach(node => node.remove());
+                
+                // Add existing photos
+                if (equipment.photos && equipment.photos.length > 0) {
+                    for (const photoURL of equipment.photos) {
+                        addPhotoToModal(photoURL);
+                    }
+                }
+                
+                // Show the modal
+                equipmentModal.style.display = 'block';
+            } catch (error) {
+                console.error("Error showing equipment details:", error);
+                showNotification("Error loading equipment details", "error");
+            }
+        };
+        
+        // Open file selector for adding photos
+        const openFileSelector = () => {
+            if (!currentEquipment) {
+                showNotification("No equipment selected", "error");
+                return;
+            }
+            
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.capture = 'environment'; // Use camera on mobile devices
+            
+            fileInput.onchange = (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    uploadPhoto(e.target.files[0]);
+                }
+            };
+            
+            fileInput.click();
+        };
+        
+        // Upload photo to Firebase Storage
+        const uploadPhoto = async (file) => {
+            try {
+                saveNotesBtn.disabled = true;
+                showNotification("Uploading photo...", "success");
+                
+                // Create a storage reference
+                const storageRef = storage.ref();
+                const fileRef = storageRef.child(`equipment_photos/${currentEquipment.id}/${Date.now()}_${file.name}`);
+                
+                // Upload file
+                const uploadTask = fileRef.put(file);
+                
+                // Listen for upload completion
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        // Progress
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log('Upload progress: ' + progress + '%');
+                    }, 
+                    (error) => {
+                        // Error
+                        console.error("Upload error:", error);
+                        showNotification("Error uploading photo", "error");
+                        saveNotesBtn.disabled = false;
+                    }, 
+                    async () => {
+                        // Complete
+                        try {
+                            // Get download URL
+                            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                            
+                            // Add photo to equipment photos array
+                            const equipmentRef = db.collection('equipment').doc(currentEquipment.id);
+                            await equipmentRef.update({
+                                photos: firebase.firestore.FieldValue.arrayUnion(downloadURL),
+                                status: 'Inspected'
+                            });
+                            
+                            // Update local data
+                            if (!currentEquipment.photos) {
+                                currentEquipment.photos = [];
+                            }
+                            currentEquipment.photos.push(downloadURL);
+                            currentEquipment.status = 'Inspected';
+                            
+                            // Add photo to modal
+                            addPhotoToModal(downloadURL);
+                            
+                            showNotification("Photo uploaded successfully", "success");
+                            saveNotesBtn.disabled = false;
+                        } catch (error) {
+                            console.error("Error getting download URL:", error);
+                            showNotification("Error saving photo reference", "error");
+                            saveNotesBtn.disabled = false;
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error("Upload error:", error);
+                showNotification("Error uploading photo", "error");
+                saveNotesBtn.disabled = false;
+            }
+        };
+        
+        // Add photo to modal
+        const addPhotoToModal = (photoURL) => {
+            const photoContainer = document.createElement('div');
+            photoContainer.className = 'photo-item photo-preview';
+            
+            // Create image
+            const img = document.createElement('img');
+            img.src = photoURL;
+            img.alt = "Equipment photo";
+            img.addEventListener('click', () => {
+                window.open(photoURL, '_blank');
+            });
+            
+            // Create delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-photo';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deletePhoto(photoURL);
+            });
+            
+            // Add elements to container
+            photoContainer.appendChild(img);
+            photoContainer.appendChild(deleteBtn);
+            
+            // Add container before the placeholder
+            const placeholder = document.getElementById('add-photo-placeholder').parentNode;
+            photosContainer.insertBefore(photoContainer, placeholder);
+        };
+        
+        // Delete photo
+        const deletePhoto = async (photoURL) => {
+            try {
+                if (!confirm("Are you sure you want to delete this photo?")) {
+                    return;
+                }
+                
+                saveNotesBtn.disabled = true;
+                showNotification("Deleting photo...", "success");
+                
+                // Get reference to the file in Storage
+                const storageRef = storage.refFromURL(photoURL);
+                
+                // Delete from Storage
+                await storageRef.delete();
+                
+                // Update Firestore
+                const equipmentRef = db.collection('equipment').doc(currentEquipment.id);
+                await equipmentRef.update({
+                    photos: firebase.firestore.FieldValue.arrayRemove(photoURL)
+                });
+                
+                // Update local data and status if no photos remain
+                currentEquipment.photos = currentEquipment.photos.filter(url => url !== photoURL);
+                
+                if (currentEquipment.photos.length === 0 && !currentEquipment.notes) {
+                    await equipmentRef.update({
+                        status: 'No Inspection'
+                    });
+                    currentEquipment.status = 'No Inspection';
+                    equipmentStatus.textContent = 'No Inspection';
+                }
+                
+                // Remove photo from modal
+                const photoItems = photosContainer.querySelectorAll('.photo-preview img');
+                photoItems.forEach(img => {
+                    if (img.src === photoURL) {
+                        img.parentNode.remove();
+                    }
+                });
+                
+                showNotification("Photo deleted successfully", "success");
+                saveNotesBtn.disabled = false;
+            } catch (error) {
+                console.error("Error deleting photo:", error);
+                showNotification("Error deleting photo", "error");
+                saveNotesBtn.disabled = false;
+            }
+        };
+        
+        // Save equipment notes
+        const saveEquipmentNotes = async () => {
+            try {
+                if (!currentEquipment) {
+                    showNotification("No equipment selected", "error");
+                    return;
+                }
+                
+                const notes = notesInput.value.trim();
+                saveNotesBtn.disabled = true;
+                showNotification("Saving notes...", "success");
+                
+                // Update Firestore
+                const equipmentRef = db.collection('equipment').doc(currentEquipment.id);
+                
+                let status = currentEquipment.status;
+                if (notes && status === 'No Inspection') {
+                    status = 'Notes Added';
+                } else if (!notes && !currentEquipment.photos?.length) {
+                    status = 'No Inspection';
+                }
+                
+                await equipmentRef.update({
+                    notes: notes,
+                    status: status
+                });
+                
+                // Update local data
+                currentEquipment.notes = notes;
+                currentEquipment.status = status;
+                equipmentStatus.textContent = status;
+                
+                showNotification("Notes saved successfully", "success");
+                saveNotesBtn.disabled = false;
+            } catch (error) {
+                console.error("Error saving notes:", error);
+                showNotification("Error saving notes", "error");
+                saveNotesBtn.disabled = false;
+            }
+        };
+        
+        // Show notification
+        const showNotification = (message, type) => {
+            notification.textContent = message;
+            notification.className = 'notification';
+            notification.classList.add(type);
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        };
+    </script>
+</body>
+</html>
